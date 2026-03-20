@@ -1,0 +1,12 @@
+# Default owners for everything in the repo
+* @EvolutionAPI/core-team
+
+# Root infrastructure files
+/.github/ @EvolutionAPI/core-team
+/docker-compose.yml @EvolutionAPI/core-team
+/Makefile @EvolutionAPI/core-team
+/setup.sh @EvolutionAPI/core-team
+/CODE_OF_CONDUCT.md @EvolutionAPI/core-team
+/CONTRIBUTING.md @EvolutionAPI/core-team
+/SECURITY.md @EvolutionAPI/core-team
+/SUPPORT.md @EvolutionAPI/core-team

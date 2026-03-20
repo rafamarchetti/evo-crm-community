@@ -6,3 +6,6 @@ contact_links:
   - name: Documentation
     url: https://github.com/EvolutionAPI/evo-crm-community/blob/main/docs/SETUP-GUIDE.md
     about: Read the full setup and configuration guide.
+  - name: Ask a Question (Discussions)
+    url: https://github.com/EvolutionAPI/evo-crm-community/discussions
+    about: Ask the community for help or start a discussion.
