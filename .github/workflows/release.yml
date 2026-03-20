@@ -13,6 +13,8 @@ jobs:
   build-and-push:
     name: Build & Push ${{ matrix.service }}
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     permissions:
       contents: write
       packages: write
@@ -22,18 +24,31 @@ jobs:
           - service: evo-auth-service-community
             context: ./evo-auth-service-community
             dockerfile: ./evo-auth-service-community/Dockerfile
+            build-args: |
+              RAILS_ENV=production
           - service: evo-ai-crm-community
             context: ./evo-ai-crm-community
             dockerfile: ./evo-ai-crm-community/docker/Dockerfile
+            build-args: ""
           - service: evo-ai-frontend-community
             context: ./evo-ai-frontend-community
             dockerfile: ./evo-ai-frontend-community/Dockerfile
+            build-args: |
+              VITE_APP_ENV=production
+              VITE_API_URL=/api
+              VITE_AUTH_API_URL=/auth
+              VITE_EVOAI_API_URL=/core
+              VITE_AGENT_PROCESSOR_URL=/processor
+              VITE_WS_URL=/cable
+              VITE_TINYMCE_API_KEY=no-api-key
           - service: evo-ai-processor-community
             context: ./evo-ai-processor-community
             dockerfile: ./evo-ai-processor-community/Dockerfile
+            build-args: ""
           - service: evo-ai-core-service-community
             context: ./evo-ai-core-service-community
             dockerfile: ./evo-ai-core-service-community/Dockerfile
+            build-args: ""
 
     steps:
       - uses: actions/checkout@v4
@@ -60,6 +75,7 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: true
+          build-args: ${{ matrix.build-args }}
           tags: |
             ${{ env.IMAGE_PREFIX }}/${{ matrix.service }}:${{ steps.version.outputs.version }}
             ${{ env.IMAGE_PREFIX }}/${{ matrix.service }}:latest
@@ -87,9 +103,9 @@ jobs:
             All images are available on GitHub Container Registry:
 
             ```bash
-            docker pull ghcr.io/evolutionapi/evo-auth-service-community:${{ github.ref_name }}
-            docker pull ghcr.io/evolutionapi/evo-ai-crm-community:${{ github.ref_name }}
-            docker pull ghcr.io/evolutionapi/evo-ai-frontend-community:${{ github.ref_name }}
-            docker pull ghcr.io/evolutionapi/evo-ai-processor-community:${{ github.ref_name }}
-            docker pull ghcr.io/evolutionapi/evo-ai-core-service-community:${{ github.ref_name }}
+            docker pull ghcr.io/evolutionapi/evo-auth-service-community:${{ needs.build-and-push.outputs.version }}
+            docker pull ghcr.io/evolutionapi/evo-ai-crm-community:${{ needs.build-and-push.outputs.version }}
+            docker pull ghcr.io/evolutionapi/evo-ai-frontend-community:${{ needs.build-and-push.outputs.version }}
+            docker pull ghcr.io/evolutionapi/evo-ai-processor-community:${{ needs.build-and-push.outputs.version }}
+            docker pull ghcr.io/evolutionapi/evo-ai-core-service-community:${{ needs.build-and-push.outputs.version }}
             ```
