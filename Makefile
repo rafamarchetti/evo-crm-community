@@ -13,7 +13,7 @@ GREEN := \033[32m
 RESET := \033[0m
 
 .PHONY: help setup start stop restart logs clean build status \
-        seed seed-auth seed-crm \
+        db-prepare db-prepare-auth db-prepare-crm \
         shell-auth shell-crm shell-core shell-processor
 
 ## —— General ——————————————————————————————————————————————————————————————————
@@ -28,7 +28,7 @@ help: ## Show this help message
 
 ## —— Setup & Lifecycle ————————————————————————————————————————————————————————
 
-setup: ## First-time setup: copy env, build, start, seed
+setup: ## First-time setup: copy env, build, prepare databases, start
 	@echo "$(CYAN)Setting up Evo AI Community...$(RESET)"
 	@if [ ! -f .env ]; then \
 		cp .env.example .env; \
@@ -44,13 +44,15 @@ setup: ## First-time setup: copy env, build, start, seed
 		sleep 2; \
 	done
 	@echo "$(GREEN)Database is ready!$(RESET)"
-	@$(MAKE) seed-auth
-	@$(MAKE) seed-crm
+	@$(MAKE) db-prepare-auth
+	@$(MAKE) db-prepare-crm
 	docker compose up -d
 	@echo ""
 	@echo "$(GREEN)============================================$(RESET)"
 	@echo "$(GREEN)  Evo AI Community is running!$(RESET)"
 	@echo "$(GREEN)============================================$(RESET)"
+	@echo ""
+	@echo "  Open http://localhost:5173 to complete the setup wizard."
 	@echo ""
 	@echo "  Frontend:   http://localhost:5173"
 	@echo "  CRM API:    http://localhost:3000"
@@ -58,9 +60,6 @@ setup: ## First-time setup: copy env, build, start, seed
 	@echo "  Processor:  http://localhost:8000"
 	@echo "  Core API:   http://localhost:5555"
 	@echo "  Mailhog:    http://localhost:8025"
-	@echo ""
-	@echo "  Login:  support@evo-auth-service-community.com"
-	@echo "  Pass:   Password@123"
 	@echo ""
 
 start: ## Start all services
@@ -93,19 +92,19 @@ clean: ## Stop services and remove all data volumes
 	docker compose down -v
 	@echo "$(GREEN)Cleaned up.$(RESET)"
 
-## —— Database & Seeds —————————————————————————————————————————————————————————
+## —— Database —————————————————————————————————————————————————————————————————
 
-seed: seed-auth seed-crm ## Run all seeds (auth first, then CRM)
+db-prepare: db-prepare-auth db-prepare-crm ## Prepare all databases (migrations only, auth first)
 
-seed-auth: ## Seed the Auth service (creates default user)
-	@echo "$(CYAN)Seeding Auth service...$(RESET)"
-	docker compose run --rm evo-auth bash -c "bundle exec rails db:prepare && bundle exec rails db:seed"
-	@echo "$(GREEN)Auth service seeded.$(RESET)"
+db-prepare-auth: ## Prepare Auth database (run migrations)
+	@echo "$(CYAN)Preparing Auth database...$(RESET)"
+	docker compose run --rm evo-auth bash -c "bundle exec rails db:create db:migrate"
+	@echo "$(GREEN)Auth database ready.$(RESET)"
 
-seed-crm: ## Seed the CRM service (creates default inbox)
-	@echo "$(CYAN)Seeding CRM service...$(RESET)"
-	docker compose run --rm evo-crm bash -c "bundle exec rails db:prepare && bundle exec rails db:seed"
-	@echo "$(GREEN)CRM service seeded.$(RESET)"
+db-prepare-crm: ## Prepare CRM database (run migrations)
+	@echo "$(CYAN)Preparing CRM database...$(RESET)"
+	docker compose run --rm evo-crm sh -c "bundle exec rails db:create db:migrate"
+	@echo "$(GREEN)CRM database ready.$(RESET)"
 
 ## —— Shell Access —————————————————————————————————————————————————————————————
 

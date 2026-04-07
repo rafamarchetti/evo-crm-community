@@ -3,8 +3,8 @@
 # Evo CRM Community — Interactive Setup Script
 # =============================================================================
 # This script sets up the entire Evo CRM platform from scratch.
-# It checks prerequisites, builds Docker images, seeds the database,
-# and starts all services.
+# It checks prerequisites, builds Docker images, prepares databases,
+# and starts all services. Complete the setup wizard in the browser.
 #
 # Usage:
 #   bash setup.sh
@@ -193,25 +193,22 @@ success "Redis is ready"
 echo ""
 
 # ---------------------------------------------------------------------------
-# Step 6: Seed Auth service (must be first)
+# Step 6: Run database migrations
 # ---------------------------------------------------------------------------
-info "Seeding Auth service (creating default account and user)..."
-docker compose run --rm evo-auth bash -c "bundle exec rails db:prepare && bundle exec rails db:seed"
-success "Auth service seeded"
+info "Running Auth service migrations..."
+docker compose run --rm evo-auth bash -c "bundle exec rails db:create db:migrate"
+success "Auth database ready"
+
+echo ""
+
+info "Running CRM service migrations..."
+docker compose run --rm evo-crm sh -c "bundle exec rails db:create db:migrate"
+success "CRM database ready"
 
 echo ""
 
 # ---------------------------------------------------------------------------
-# Step 7: Seed CRM service
-# ---------------------------------------------------------------------------
-info "Seeding CRM service (creating default inbox)..."
-docker compose run --rm evo-crm bash -c "bundle exec rails db:prepare && bundle exec rails db:seed"
-success "CRM service seeded"
-
-echo ""
-
-# ---------------------------------------------------------------------------
-# Step 8: Start all services
+# Step 7: Start all services
 # ---------------------------------------------------------------------------
 info "Starting all services..."
 docker compose up -d
@@ -227,19 +224,22 @@ echo "  ║           Evo CRM Community is running!                ║"
 echo "  ╚═══════════════════════════════════════════════════════╝"
 echo "${RESET}"
 echo ""
+echo "  ${BOLD}Next Step:${RESET}"
+echo "  ─────────────────────────────────────────────"
+echo "  Open ${CYAN}http://localhost:5173${RESET} to complete the setup wizard."
+echo "  The wizard will activate your instance and create the first admin user."
+echo ""
+echo "  ${YELLOW}Note: Services may take 1-2 minutes to become fully ready.${RESET}"
+echo "  ${YELLOW}If the page doesn't load, wait a moment and refresh.${RESET}"
+echo ""
 echo "  ${BOLD}Service URLs:${RESET}"
 echo "  ─────────────────────────────────────────────"
 echo "  Frontend:    ${CYAN}http://localhost:5173${RESET}"
-echo "  CRM API:     ${CYAN}http://localhost:3000${RESET}"
-echo "  Auth API:    ${CYAN}http://localhost:3001${RESET}"
-echo "  Processor:   ${CYAN}http://localhost:8000${RESET}"
-echo "  Core API:    ${CYAN}http://localhost:5555${RESET}"
-echo "  Mailhog:     ${CYAN}http://localhost:8025${RESET}  (email testing)"
-echo ""
-echo "  ${BOLD}Default Login:${RESET}"
-echo "  ─────────────────────────────────────────────"
-echo "  Email:       ${GREEN}support@evo-auth-service-community.com${RESET}"
-echo "  Password:    ${GREEN}Password@123${RESET}"
+echo "  CRM API:    ${CYAN}http://localhost:3000${RESET}"
+echo "  Auth API:   ${CYAN}http://localhost:3001${RESET}"
+echo "  Processor:  ${CYAN}http://localhost:8000${RESET}"
+echo "  Core API:   ${CYAN}http://localhost:5555${RESET}"
+echo "  Mailhog:    ${CYAN}http://localhost:8025${RESET}  (email testing)"
 echo ""
 echo "  ${BOLD}Useful Commands:${RESET}"
 echo "  ─────────────────────────────────────────────"
@@ -248,10 +248,4 @@ echo "  make logs     — View logs (all services)"
 echo "  make stop     — Stop all services"
 echo "  make start    — Start all services"
 echo "  make clean    — Remove all data and start fresh"
-echo ""
-echo "  ${BOLD}Documentation:${RESET}"
-echo "  ─────────────────────────────────────────────"
-echo "  Setup Guide:       docs/SETUP-GUIDE.md"
-echo "  Troubleshooting:   docs/TROUBLESHOOTING.md"
-echo "  Contributing:      CONTRIBUTING.md"
 echo ""
