@@ -30,6 +30,18 @@ services:
   # ---------------------------------------------------------------------------
   evo_gateway:
     image: evoapicloud/evo-crm-gateway:latest
+    # The gateway routes to the 5 backend services by their docker service
+    # names. Defaults match the names used in this stack (evo_auth, evo_crm,
+    # evo_core, evo_processor, evo_bot_runtime). If you rename the services
+    # in your own stack (e.g. using a different prefix), uncomment and set
+    # the matching *_UPSTREAM env var — otherwise the gateway cannot resolve
+    # them and every request returns 502. See nginx/README.md for details.
+    # environment:
+    #   AUTH_UPSTREAM: my_auth:3001
+    #   CRM_UPSTREAM: my_crm:3000
+    #   CORE_UPSTREAM: my_core:5555
+    #   PROCESSOR_UPSTREAM: my_processor:8000
+    #   BOT_RUNTIME_UPSTREAM: my_bot_runtime:8080
     networks:
       - network_public
     deploy:
