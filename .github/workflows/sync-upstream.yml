@@ -1,0 +1,33 @@
+name: Sync fork com upstream
+
+on:
+  schedule:
+    # Roda todo dia às 03:00 UTC (00:00 Brasília no horário padrão)
+    - cron: '0 3 * * *'
+  # Permite rodar manualmente no botão "Run workflow"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Sync da branch main com upstream
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        with:
+          target_sync_branch: main
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+          upstream_sync_branch: main
+          upstream_sync_repo: EvolutionAPI/evo-crm-community
+          upstream_pull_args: '--ff-only'
+
+      - name: Notifica se houve mudanças
+        if: steps.sync.outputs.has_new_commits == 'true'
+        run: echo "Fork sincronizado com novas mudanças do upstream."
