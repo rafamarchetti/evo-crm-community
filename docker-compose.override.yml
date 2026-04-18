@@ -5,19 +5,17 @@ networks:
 services:
   postgres:
     ports: !reset []
-    # Mailpit: substituto moderno do Mailhog com suporte ARM nativo
+
+  redis:
+    ports: !reset []
+
+  # Mailpit substitui o Mailhog (imagem ARM nativa)
   mailhog:
     image: axllent/mailpit:latest
     restart: unless-stopped
     environment:
       MP_SMTP_BIND_ADDR: 0.0.0.0:1025
       MP_UI_BIND_ADDR: 0.0.0.0:8025
-    ports: !reset []
-
-  redis:
-    ports: !reset []
-
-  mailhog:
     ports: !reset []
 
   evo-frontend:
