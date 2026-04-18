@@ -1,37 +1,53 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
 # =============================================================
-# Update EvoCRM em produção
+# EvoCRM — Update em produção
 # Uso: ./update.sh
 # =============================================================
+set -euo pipefail
 
 cd "$(dirname "$0")"
 
-echo ">>> Fazendo backup do banco antes de atualizar..."
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+echo ">>> Backup do banco antes de atualizar..."
 mkdir -p backups
 docker compose exec -T postgres pg_dump -U postgres evo_community \
-  | gzip > "backups/evo_community-${TIMESTAMP}.sql.gz"
-echo ">>> Backup salvo em backups/evo_community-${TIMESTAMP}.sql.gz"
+    | gzip > "backups/pre-update-${TIMESTAMP}.sql.gz"
+echo "Backup salvo em backups/pre-update-${TIMESTAMP}.sql.gz"
+echo ""
 
-echo ">>> Atualizando código do fork..."
+echo ">>> Pull do fork..."
 git pull --ff-only
+echo ""
 
-echo ">>> Atualizando submódulos (código dos serviços)..."
+echo ">>> Atualizando submódulos..."
 git submodule update --init --recursive --remote --merge
+echo ""
 
-echo ">>> Rebuildando containers (isso pode levar alguns minutos)..."
+echo ">>> Rebuild (pode levar alguns min em ARM)..."
 docker compose build --pull
+echo ""
 
-echo ">>> Subindo nova versão..."
-docker compose up -d
+echo ">>> Force recreate pra pegar eventuais mudanças no .env..."
+docker compose up -d --force-recreate
+echo ""
 
-echo ">>> Esperando serviços ficarem healthy..."
-sleep 30
+echo ">>> Aguardando containers ficarem healthy (60s)..."
+sleep 60
+
+echo ">>> Rodando migrations (se houver novas)..."
+docker compose exec -T evo-crm bundle exec rails db:migrate 2>&1 | tail -5 || true
+docker compose exec -T evo-auth bundle exec rails db:migrate 2>&1 | tail -5 || true
+
+echo ""
+echo ">>> Status final:"
 docker compose ps
 
 echo ""
-echo ">>> Update concluído!"
-echo ">>> Últimas migrations (se houver) rodam automaticamente no entrypoint do Rails."
-echo ">>> Para acompanhar os logs: docker compose logs -f"
+echo "Update concluído."
+echo "Se algo quebrar, rollback:"
+echo "  git log --oneline -5"
+echo "  git reset --hard <HASH_ANTERIOR>"
+echo "  git submodule update --init --recursive"
+echo "  docker compose up -d --build"
+echo "  gunzip -c backups/pre-update-${TIMESTAMP}.sql.gz | docker compose exec -T postgres psql -U postgres evo_community"

@@ -1,0 +1,16 @@
+http:
+  routers:
+    evocrm-front-file:
+      rule: "Host(`crm.daios.com.br`)"
+      entryPoints:
+        - websecure
+      service: evocrm-front-service
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    evocrm-front-service:
+      loadBalancer:
+        servers:
+          - url: "http://10.0.1.57:80"
+        passHostHeader: true
