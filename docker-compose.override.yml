@@ -1,0 +1,81 @@
+networks:
+  dokploy-network:
+    external: true
+
+services:
+  postgres:
+    ports: !reset []
+
+  redis:
+    ports: !reset []
+
+  mailhog:
+    ports: !reset []
+
+  evo-frontend:
+    ports: !reset []
+    networks:
+      - default
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.evocrm-front.rule=Host(`crm.daios.com.br`)
+      - traefik.http.routers.evocrm-front.entrypoints=websecure
+      - traefik.http.routers.evocrm-front.tls.certresolver=letsencrypt
+      - traefik.http.services.evocrm-front.loadbalancer.server.port=80
+
+  evo-crm:
+    ports: !reset []
+    networks:
+      - default
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.evocrm-api.rule=Host(`api-crm.daios.com.br`)
+      - traefik.http.routers.evocrm-api.entrypoints=websecure
+      - traefik.http.routers.evocrm-api.tls.certresolver=letsencrypt
+      - traefik.http.services.evocrm-api.loadbalancer.server.port=3000
+
+  evo-auth:
+    ports: !reset []
+    networks:
+      - default
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.evocrm-auth.rule=Host(`auth-crm.daios.com.br`)
+      - traefik.http.routers.evocrm-auth.entrypoints=websecure
+      - traefik.http.routers.evocrm-auth.tls.certresolver=letsencrypt
+      - traefik.http.services.evocrm-auth.loadbalancer.server.port=3001
+
+  evo-core:
+    ports: !reset []
+    networks:
+      - default
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.evocrm-core.rule=Host(`core-crm.daios.com.br`)
+      - traefik.http.routers.evocrm-core.entrypoints=websecure
+      - traefik.http.routers.evocrm-core.tls.certresolver=letsencrypt
+      - traefik.http.services.evocrm-core.loadbalancer.server.port=5555
+
+  evo-processor:
+    ports: !reset []
+    networks:
+      - default
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.evocrm-proc.rule=Host(`processor-crm.daios.com.br`)
+      - traefik.http.routers.evocrm-proc.entrypoints=websecure
+      - traefik.http.routers.evocrm-proc.tls.certresolver=letsencrypt
+      - traefik.http.services.evocrm-proc.loadbalancer.server.port=8000
+
+  evo-bot-runtime:
+    ports: !reset []

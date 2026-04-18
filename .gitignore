@@ -1,2 +1,13 @@
 .env
 _evo*
+.env.local
+.env.production
+
+# Backups
+backups/
+*.sql
+*.sql.gz
+
+# SOs
+.DS_Store
+Thumbs.db
