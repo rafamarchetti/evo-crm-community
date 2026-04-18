@@ -30,6 +30,8 @@ services:
       - traefik.http.routers.evocrm-front.entrypoints=websecure
       - traefik.http.routers.evocrm-front.tls.certresolver=letsencrypt
       - traefik.http.services.evocrm-front.loadbalancer.server.port=80
+      - traefik.swarm.network=dokploy-network
+      - traefik.swarm.enable=false
 
   evo-crm:
     ports: !reset []
